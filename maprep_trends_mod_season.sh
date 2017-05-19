@@ -95,48 +95,85 @@ for season in "${seasons[@]}"
 			display: true,
 			plot: {
 			cssClass: "mapLegend",
-			title: "'$param2' ('$model') - '$season' averages - '$period'",
+			title: "'$param2' Obs/'$model' - '$season' averages - '$period'",
 			mode: "horizontal",
 			type: "circle",
 			hideElemsOnClick: {
 			opacity: 0,
 			},
 			slices: [{
-			size: siz1,
-			legendSpecificAttrs: {r: 7},
-			min: 0.01,
-			attrs: {
-			fill: col1
-			},
-			label: "Positive trend"
-			},{
-			size: siz1,
-			legendSpecificAttrs: {r: 7},
-			min: -98,
-			max: -0.01,
-			attrs: {
-			fill: col2
-			},
-			label: "Negative trend"
-			},{
-			size: siz1,
-			legendSpecificAttrs: {r: 7},
-			min: -0.01,
-			max: 0.01,
-			attrs: {
-			fill: col3
-			},
-			label: "No trend"
-			},{
-			size: siz2,
-			legendSpecificAttrs: {r: 5},
-			min: -99.1,
-			max: -98.9,
-			attrs: {
-			fill: col4,
-			opacity: 0.15
-			},
-			label: "<7 years"
+					size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: -98,
+        max: -4,
+        attrs: {
+        fill: col7
+        },
+        label: "< -4"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: -4.0,
+        max: -2.0,
+        attrs: {
+        fill: col6
+        },
+        label: "[-4:-2]"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: -2.0,
+        max: -0.0001,
+        attrs: {
+        fill: col5
+        },
+        label: "[-2:0]"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: 0.0001,
+        max: 2.0,
+        attrs: {
+        fill: col3
+        },
+        label: "[0:+2]"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: 2.0,
+        max: 4.0,
+        attrs: {
+        fill: col2
+        },
+        label: "[+2:+4]"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: 4.0,
+        max: 98,
+        attrs: {
+        fill: col1
+        },
+        label: "> +4 (%/yr)"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: -0.001,
+        max: 0.001,
+        attrs: {
+        fill: col4
+        },
+        label: "No Trend"
+        },{
+        size: siz2,
+        legendSpecificAttrs: {r: 5},
+        min: -99.1,
+        max: -98.9,
+        attrs: {
+        fill: col0,
+        opacity: 0.15
+        },
+        label: "<7 years"		
 			}]
 			}
 			},
@@ -199,7 +236,7 @@ for season in "${seasons[@]}"
 
 					#file can be empty
 					if [ -n "$mod_trend" ];then
-						mod_pval=$(expr ${arr[1]}*10000 | bc)  #integer only!
+						mod_pval=$(expr ${arr[$ncol]}*10000 | bc)  #integer only!
 						printf -v mod_pval "%.0f\n" $mod_pval
 						mod_pval=${mod_pval::-1}
 						if [ "$mod_trend" = 'nan' ]; then
@@ -234,32 +271,58 @@ for season in "${seasons[@]}"
 					#echo 'type: "circle",' >>$out
 					if  [ "$mod_itrend" -ne -990000 ] && [ "$mod_itrend" -ne -9990000 ]; then
 						echo $mod_itrend	
-						if [ "$mod_itrend" -gt 0 ]; then
+						if [ "$mod_itrend" -ge 40000 ]; then
 							echo 'attrs:{stroke:col1,"stroke-width":2.5},' >>$out
 						fi
-						if [ "$mod_itrend" -lt 0 ]; then
+						if [ "$mod_itrend" -ge 20000 ] && [ "$mod_itrend" -lt 40000 ]; then
 							echo 'attrs:{stroke:col2,"stroke-width":2.5},' >>$out
 						fi
-						if [ "$mod_itrend" -eq 0 ]; then
+						if [ "$mod_itrend" -gt 0 ] && [ "$mod_itrend" -lt 20000 ]; then
 							echo 'attrs:{stroke:col3,"stroke-width":2.5},' >>$out
 						fi
+						if [ "$mod_itrend" -eq 0 ]; then
+							echo 'attrs:{stroke:col4,"stroke-width":2.5},' >>$out
+						fi
+						if [ "$mod_itrend" -gt -20000 ] && [ "$mod_itrend" -lt 0 ]; then
+							echo 'attrs:{stroke:col5,"stroke-width":2.5},' >>$out
+						fi
+						if [ "$mod_itrend" -ge -40000 ] && [ "$mod_itrend" -lt -20000 ]; then
+							echo 'attrs:{stroke:col6,"stroke-width":2.5},' >>$out
+						fi
+						if [ "$mod_itrend" -le -40000 ]; then
+							echo 'attrs:{stroke:col7,"stroke-width":2.5},' >>$out
+						fi
+					fi
+					if [ "$mod_itrend" -eq -990000 ]; then
+						echo 'attrs:{stroke:col0m,"stroke-width":2.5},' >>$out
 					fi
 					echo 'latitude: '$lat',' >>$out
 					echo 'longitude: '$lon',' >>$out
 					echo 'value: '$trend',' >>$out
 					if [ "$itrend" -ne 0 ] && [ "$itrend" -ne -990000 ] && [ "$itrend" -ne -9990000 ]; then
 						if [ "$mod_itrend" -ne 0 ] && [ "$mod_itrend" -ne -990000 ] && [ "$mod_itrend" -ne -9990000 ]; then
-							echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span>"+"<br/>Obs: '$trend' %/yr"+"<br/>Mod: '$mod_trend' %/yr"},'>>$out
+							echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span><br/>Obs: '$trend' %/yr<br/>Mod: '$mod_trend' %/yr"},'>>$out
 						else
-							echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span>"+"<br/>Obs: '$trend' %/yr"+"<br/>Mod: No Trend"},'>>$out
+							echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span><br/>Obs: '$trend' %/yr<br/>Mod: No Trend"},'>>$out
 						fi
+						if [ "$mod_itrend" -eq -990000 ] ; then
+							echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span><br/>Obs: '$trend' %/yr<br/>Mod: <7 years"},'>>$out
+					fi
 					else
-						if [ "$mod_itrend" -ne 0 ] && [ "$mod_itrend" -ne -990000 ] && [ "$mod_itrend" -ne -9990000 ]; then
-							echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span>"+<br/>+"Obs: No Trend"+"<br/>Mod: '$mod_trend' %/yr"},'>>$out
-						else
+						if [ "$itrend" -eq -990000 ] || [ "$itrend" -eq -999000 ] ; then
 							echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span>"},'>>$out
+						else
+							if [ "$mod_itrend" -ne 0 ] && [ "$mod_itrend" -ne -990000 ] && [ "$mod_itrend" -ne -9990000 ]; then
+								echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span><br/>Obs: No Trend<br/>Mod: '$mod_trend' %/yr"},'>>$out
+							else
+								if [ "$mod_itrend" -eq -990000 ] ; then
+									echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span><br/>Obs: No Trend<br/>Mod: <7 years"},'>>$out
+								else
+									echo 'tooltip: {content : "<span style=\"font-weight:bold;\">'$site'</span><br/>Obs: No Trend<br/>Mod: No Trend"},'>>$out
+								fi
+							fi
 						fi
-					fi	
+					fi
 					#echo 'text : {content : ""},'>>$out
 					echo 'URL: "'$site'"'>>$out
 					echo '},'>>$out
@@ -292,7 +355,13 @@ for season in "${seasons[@]}"
 			},{
 			size: siz1
 			},{
-			size: siz2
+			size: siz1
+			},{
+			size: siz1
+			},{
+			size: siz1
+			},{
+			size: siz1
 			},{
 			size: siz2
 			}]

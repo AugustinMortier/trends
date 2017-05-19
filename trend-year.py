@@ -1,4 +1,4 @@
-#!/usr/bin/python3.2
+#!/usr/bin/python3.4
 #print("Mann-Kendall - Sen Slope for yearly parameters")
 
 #input reading
@@ -11,14 +11,11 @@ ndps=10 #days per season
 ply='nop' #yes
 
 import sys
+path, site, param, yrmin, yrmax, nmkmin, avgtime, release_date = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), int(sys.argv[5]), int(sys.argv[6]), sys.argv[7],  sys.argv[8]
 
-if len(sys.argv)<3+1:
-	print('2 arguments expected: site, parameter')
-	sys.exit()
-
-path, site, param, yrmin, yrmax, nmkmin, avgtime = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), int(sys.argv[5]), int(sys.argv[6]), sys.argv[7]
-
-#path, site, param, yrmin, yrmax, nmkmin, avgtime = '/metno/aerocom/work/aerocom1/AEROCOM_OBSDATA/Export/AERONETSun2.0', 'Venise', 'ang4487aer', 1995, 2014, 7, 'daily'
+#path, site, param, yrmin, yrmax, nmkmin, avgtime, release_date = '/metno/aerocom/work/aerocom1/AEROCOM_OBSDATA/Export/AERONETSun2.0', 'Lille', 'od550aer', 2002, 2012, 7, 'daily', '2015-09-24'
+#path, site, param, yrmin, yrmax, nmkmin, avgtime = '/metno/aerocom/work/aerocom1/AEROCOM_OBSDATA/Export/GAW_ACTRIS', 'Hohenpeissenberg', 'NC', 2002, 2012, 7, 'daily'
+#path, site, param, yrmin, yrmax, nmkmin, avgtime, release_date = '/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/Export/EANET', 'Khanchanaburi', 'so4_precip', 2002, 2012, 7, 'monthly', '2016-09-08'
 
 #print(path, site, param)
 
@@ -37,6 +34,21 @@ inpath=path + '/' + fil
 import csv
 readCSV = csv.reader(open(inpath), delimiter='\t')
 
+#network
+network=path.rsplit('/', 1)[-1]
+print('NETWORK: ',network)
+if network == 'AERONETSun2.0':
+	network = 'AERONET'
+if network == 'GAW_TAD':
+	network = 'GAW/TAD'
+if network == 'GAW_IMPROVE':
+	network = 'GAW/IMPROVE/ACTRIS'
+if network == 'GAW_ACTRIS':
+	network = 'GAW/IMPROVE/ACTRIS'
+if network == 'GAW_TAD_EANET':
+	network = 'GAW/TAD/EANET'
+
+
 # initialization
 dates, years, months, datas, odays = [], [], [], [], []
 i = 0
@@ -51,6 +63,10 @@ for row in readCSV:
 		month = row[2]
 		day = row[3]
 		data = row[7]
+		#flag
+		if data in ['-','-99']:
+		    data=np.nan
+
 		if avgtime=='daily':
 			#conversion ordinal day
 			oday=datetime.toordinal(datetime(int(year),int(month),int(day)))
@@ -72,7 +88,7 @@ if len(datas)>0:
 	
 	#monthly averages
 	mdatas, mods, mmonths, myears = [], [], [], []
-	for y in np.linspace(years[1],years[-1],1+years[-1]-years[1]):
+	for y in np.linspace(min(years),max(years),1+max(years)-min(years)):
 		for m in np.linspace(1,12,12):
 			cur_mdatas=[]
 			mods.append(datetime.toordinal(datetime(int(y),int(m),1)))
@@ -90,7 +106,7 @@ if len(datas)>0:
 
 	#analysis per season
 	seasons=['spring','summer','autumn','winter']
-	taus, pvals, spyrs = [], [], []
+	taus, pvals, spyrs, reg0s = [], [], [], []
 	for season in seasons:
 		#mdatasok=[]
 		sdatas, sdatasok, sodsok = [], [], []
@@ -109,14 +125,16 @@ if len(datas)>0:
 		if season == 'winter':
 			mis=[12,1,2]
 		
-		for y in np.linspace(years[1],years[-1],1+years[-1]-years[1]):
+		for y in np.linspace(min(years),max(years),1+max(years)-min(years)):
 			cur_sdatas=[]
 			sodok=datetime.toordinal(datetime(int(y),int(mis[1]),1))
 			sodsok.append(sodok)
 			for i in range(0,len(datas)):
-				if years[i]==y and months[i] in mis and not np.isnan(datas[i]):
+				#if years[i]==y and months[i] in mis and not np.isnan(datas[i]):
+				if (years[i]==y and months[i] in mis and not np.isnan(datas[i]) and months[i]!=12) or (years[i]==y-1 and months[i] in mis and not np.isnan(datas[i]) and months[i]==12):
 					#put vars of the season in a list
 					cur_sdatas.append(datas[i])
+			#print(y,season, len(cur_sdatas))
 			if len(cur_sdatas)>0:
 				smean=sum(cur_sdatas)/float(len(cur_sdatas))
 				if (avgtime=='daily'):
@@ -153,7 +171,8 @@ if len(datas)>0:
 	yods, ydatas, ydatasok, mdatasok = [], [], [], []
 	i=0
 	lok=0
-	for y in np.linspace(years[1],years[-1],1+years[-1]-years[1]):
+	#for y in np.linspace(years[1],years[-1],1+years[-1]-years[1]):
+	for y in np.linspace(min(years),max(years),1+max(years)-min(years)):
 		yods.append(datetime.toordinal(datetime(int(y),6,15)))
 		if not np.isnan(spring[i]) and not np.isnan(summer[i]) and not np.isnan(autumn[i]) and not np.isnan(winter[i]):
 			ydata=sum([spring[i],summer[i],autumn[i],winter[i]])/4
@@ -177,7 +196,7 @@ if len(datas)>0:
 	#statistics
 	p_stat='no'
 	if len(ydatasok)==0:
-		tau, pval, spyr = float('NaN'), float('NaN'), float('NaN')
+		tau, pval, spyr, reg0 = float('NaN'), float('NaN'), float('NaN'), float('NaN')
 	else:
 		x = yods
 		y = ydatasok
@@ -199,9 +218,10 @@ if len(datas)>0:
 			reg=res[0]*np.asarray(X)+res[1]*np.ones(len(X))
 			regg=res[0]*np.asarray(mods)+res[1]*np.ones(len(mods))
 			spyr=res[0]*365*100/reg[0] #% per year
-			#str_b = "%3.2f" % res[1]
+			reg0=reg[0]
+                        #str_b = "%3.2f" % res[1]
 		else:
-			tau, pval, spyr = float('NaN'), float('NaN'), float('NaN')
+			tau, pval, spyr, reg0 = float('NaN'), float('NaN'), float('NaN'), float('NaN')
 		str_tau = "%5.2f" % tau
 		str_pval = "%5.4f" % pval
 		str_a = "%4.1f" % spyr
@@ -233,7 +253,7 @@ if len(datas)>0:
 		else:
 			ymin, ymax = 0, 2
 	if param=='so4_precip':
-		ylab="${SO4\ deposition\ (kgS/ha)}$"
+		ylab="${SO4\ deposition\ (kgS/ha/month)}$"
 		yax_fmt="%3.2f"
 		yspace=0.1
 		if not np.isnan(np.nanmax(mdatas)):
@@ -327,20 +347,20 @@ if len(datas)>0:
 	#plot
 	#font
 	plt.rcParams['text.usetex'] = False
-	plt.rc('ytick', labelsize=10) 
-	plt.rcParams['font.family']='Arial'
-	plt.rcParams.update({'font.size': 10})
-	mpl.rcParams['xtick.labelsize'] = 10 
+	plt.rc('ytick', labelsize=9) 
+	#plt.rcParams['font.family']='Arial'
+	plt.rcParams.update({'font.size': 9})
+	mpl.rcParams['xtick.labelsize'] = 9 
 
 	#monthly
-	l1=plt.plot_date(mods,mdatas,fillstyle='none',markersize=4, markeredgewidth=0.5,markeredgecolor=matplotlib.colors.colorConverter.to_rgba('#1f77b4', alpha=.5),zorder=2)
-	l2=plt.plot_date(mods,mdatasok,color="#1f77b4", markersize=4, markeredgewidth=0.0, alpha=0.5,zorder=3)
-	l3=plt.plot_date(mods,mdatas,color="#1f77b4", linestyle='-', linewidth=0.5, markersize=0.0, markeredgewidth=0.0, alpha=0.1,zorder=4)
+	l1=plt.plot_date(mods,mdatas,fillstyle='none',markersize=4, markeredgewidth=0.5,markeredgecolor=matplotlib.colors.colorConverter.to_rgba('#2b2d39', alpha=.5),zorder=2)
+	l2=plt.plot_date(mods,mdatasok,color="#2b2d39", markersize=4, markeredgewidth=0.0, alpha=0.5,zorder=3)
+	l3=plt.plot_date(mods,mdatas,color="#2b2d39", linestyle='-', linewidth=0.5, markersize=0.0, markeredgewidth=0.0, alpha=0.1,zorder=4)
 	#yearly
-	l4=plt.plot_date(yods,ydatas,color="#1f77b4", markersize=9, markeredgewidth=0.0, alpha=0.35,zorder=5)
+	l4=plt.plot_date(yods,ydatas,color="#2b2d39", markersize=9, markeredgewidth=0.0, alpha=0.35,zorder=5)
 	if len(sdatasok)>0:
-		l5=plt.plot_date(yods,ydatasok,color="#1f77b4", markersize=9, markeredgewidth=0.0, alpha=0.8,zorder=6)
-	l6=plt.plot_date(yods,ydatasok,color="#1f77b4", linestyle='-', linewidth=3.0, markersize=0.0, markeredgewidth=0.0, alpha=0.6,zorder=7)
+		l5=plt.plot_date(yods,ydatasok,color="#2b2d39", markersize=9, markeredgewidth=0.0, alpha=0.8,zorder=6)
+	l6=plt.plot_date(yods,ydatasok,color="#2b2d39", linestyle='-', linewidth=2.5, markersize=0.0, markeredgewidth=0.0, alpha=0.6,zorder=7)
 	
 	#add title
 	ax.set_title(site,bbox=dict(facecolor='white', alpha=0.0, linewidth=0),weight='normal',color='.32')
@@ -353,8 +373,23 @@ if len(datas)>0:
 	#add legend
 	if p_stat=='yes':
 		if pval<=1-sig:
-			l7=plt.plot(X,reg, color="#ff7f0e",linewidth=2.5, alpha=0.4,zorder=8)
-			text(xmin+0.87*(xmax-xmin),ymin+0.85*(ymax-ymin),str_a + '%/yr',bbox=dict(facecolor='white', alpha=0.4, linewidth=0),color="#ff7f0e")
+			if spyr<=-4:
+				col="#2f57b6"
+			if spyr>-4 and spyr<=-2:
+				col="#427fff"
+			if spyr>-2 and spyr<0:
+				col="#8eb2ff"
+			if spyr>0 and spyr<=2:
+				col="#ff8ea1"
+			if spyr>2 and spyr<=4:
+				col="#ff4362"
+			if spyr>=4:
+				col="#cd2340"
+			
+			l7=plt.plot(X,reg, color=col,linewidth=1.75, alpha=0.9,zorder=8)
+			text(xmin+0.87*(xmax-xmin),ymin+0.85*(ymax-ymin),str_a + '%/yr',bbox=dict(facecolor='white', alpha=0.7, linewidth=0),color="#2b2d39",zorder=50)
+		else:
+			text(xmin+0.87*(xmax-xmin),ymin+0.85*(ymax-ymin),'No Trend',bbox=dict(facecolor='white', alpha=0.7, linewidth=0),color="#2b2d39",zorder=50)
 
 	#axis
 	plt.ylabel(ylab,size=12,color='.32')
@@ -375,9 +410,9 @@ if len(datas)>0:
 	if yrmin==1980 and yrmax==2013:
 		vecyear=vecyear[0:-1]
 	for y in vecyear:
-		if i<len(vecyear):
-			text(yrpos[i]+sby[fy-1],ymin-0.075*(ymax-ymin),str(int(vecyear[i])),bbox=dict(facecolor='white', alpha=0.4, linewidth=0),size=10,color='.32')
-		i=i+fy
+            if i<len(vecyear):
+                text(yrpos[i]+sby[fy-1],ymin-0.075*(ymax-ymin),str(int(vecyear[i])),bbox=dict(facecolor='white', alpha=0.4, linewidth=0),size=10,color='.32')
+            i=i+fy
 	
 	#grid
 	ax.xaxis.grid(True,linestyle='-',color='.90',zorder=1)
@@ -396,8 +431,13 @@ if len(datas)>0:
 	
 	#margins
 	ax.yaxis.labelpad = 0
-	plt.subplots_adjust(left=0.080, right=0.98, top=0.90, bottom=0.10)
+	plt.subplots_adjust(left=0.085, right=0.98, top=0.90, bottom=0.10)
 
+	#sources
+	text(xmin+0.01*(xmax-xmin),ymin+0.08*(ymax-ymin),network,bbox=dict(facecolor='white', alpha=0.7, linewidth=0, pad=0.1),color="#2b2d39",zorder=70,size=5)
+	text(xmin+0.01*(xmax-xmin),ymin+0.03*(ymax-ymin),release_date,bbox=dict(facecolor='white', alpha=0.7, linewidth=0, pad=0.1),color="#2b2d39",zorder=70,size=5)
+	text(xmin+0.75*(xmax-xmin),ymin+0.03*(ymax-ymin),'source: http://aerocom.met.no/trends',bbox=dict(facecolor='white', alpha=0.7, linewidth=0,pad=0.1),color="#2b2d39",zorder=70,size=5)
+	
 	#recording of figure
 	plt.savefig('fig/' + site + '_' + param + '_years_' + str(yrmin) + '-' + str(yrmax) + '.png', dpi=120)
 
@@ -411,24 +451,24 @@ if len(datas)>0:
 				color='rgba(31,119,180,0.3)',
 				symbol= "circle-open"),
 				line=Line(
-				width=1,color='rgba(31,119,180,0.2)')
+				width=1,color='rgba(0,0,0,0.2)')
 		)
 		trace1 = Scatter(
 			x=md,y=mdatasok,mode='markers',name='Monthly-'+season,
 			marker=Marker(
-				color="rgba(31,119,180,0.6)")
+				color="rgba(0,0,0,0.6)")
 		)
 		trace2 = Scatter(
 			x=yd,y=ydatasok,mode='lines+markers',name=season,
 			marker=Marker(
-				color="rgba(31,119,180,0.9)",size=15),
+				color="rgba(0,0,0,0.9)",size=15),
 			line=Line(
-				width=4.5,color="rgba(31,119,180,0.7)")
+				width=4.5,color="rgba(0,0,0,0.7)")
 		)
 		trace22 = Scatter(
 			x=yd,y=ydatas,mode='markers',name=season,
 			marker=Marker(
-				color="rgba(31,119,180,0.4)",size=15),
+				color="rgba(0,0,0,0.4)",size=15),
 		)
 		
 		if pval<=1-sig:
@@ -524,7 +564,7 @@ if len(datas)>0:
 
 	#write in ascii file
 	f = open('out/' + site + '-' + param + '_years_' + str(int(yrmin)) + '-' + str(int(yrmax)) + '.txt', 'w')
-	stats=['MK_tau ','MK_pval','TS(%/y)']
+	stats=['MK_tau ','MK_pval','TS(%/y)','Reg0']
 
 	#header
 
@@ -536,10 +576,12 @@ if len(datas)>0:
 			curstat = pval
 		if stat == stats[2]:
 			curstat = spyr
+		if stat == stats[3]:
+			curstat = reg0
 		f.write(stat)
 		curst_stat="%5.4f" % curstat
 		f.write('\t'+curst_stat+'\n')
-	f.write(str(int(years[0]))+'\t'+str(int(years[-1]))+'\n')
+	f.write(str(int(min(years)))+'\t'+str(int(max(years)))+'\n')
 		
 	f.close()
 

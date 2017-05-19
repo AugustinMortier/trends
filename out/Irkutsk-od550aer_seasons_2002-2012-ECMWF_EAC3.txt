@@ -1,0 +1,5 @@
+stats	spring	summer	autumn	winter
+MK_tau 	-0.0222	0.2889	0.1111	-0.0222
+MK_pval	0.9287	0.2449	0.6547	0.9287
+TS(%/y)	-1.4430	3.9382	0.6627	-0.5089
+Reg0

@@ -1,0 +1,6 @@
+stats	spring	summer	autumn	winter
+MK_tau 	  nan	-0.2000	-0.3889	  nan
+MK_pval	  nan	0.4208	0.1444	  nan
+TS(%/y)	  nan	-1.6398	-5.0884	  nan
+Reg0	  nan	0.1701	0.1972	  nan
+2002	2012

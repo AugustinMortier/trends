@@ -8,14 +8,20 @@ path=$5 #'/metno/aerocom/work/aerocom1/AEROCOM_OBSDATA/Export/'
 period=$6
 param2=$7 #'AOD' 'AE' 'SO4wet'
 
+echo $path$network
+
 #declare -a periods=('1995-2014' '2002-2012')
 #for period in "${periods[@]}"
 	#do
+	echo $network
 	list=`ls $path$network | grep $param'_'$time'_'`
+
+	echo $list
 	lpara=`expr length $param`
 	ltime=`expr length $time`
 	beg=`expr $lpara + $ltime + 2 `
 	echo $beg
+
 
 	declare -a typs=('hover' 'click')
 	for typ in "${typs[@]}"
@@ -83,40 +89,77 @@ param2=$7 #'AOD' 'AE' 'SO4wet'
 		},
 		slices: [{
 		size: siz1,
-		legendSpecificAttrs: {r: 7},
-		min: 0.01,
-		attrs: {
-		fill: col1
-		},
-		label: "Positive trend"
-		},{
-		size: siz1,
-		legendSpecificAttrs: {r: 7},
-		min: -98,
-		max: -0.01,
-		attrs: {
-		fill: col2
-		},
-		label: "Negative trend"
-		},{
-		size: siz1,
-		legendSpecificAttrs: {r: 7},
-		min: -0.01,
-		max: 0.01,
-		attrs: {
-		fill: col3
-		},
-		label: "No trend"
-		},{
-		size: siz2,
-		legendSpecificAttrs: {r: 5},
-		min: -99.1,
-		max: -98.9,
-		attrs: {
-		fill: col4,
-		opacity: 0.15
-		},
-		label: "<7 years"
+        legendSpecificAttrs: {r: 7},
+        min: -98,
+        max: -4,
+        attrs: {
+        fill: col7
+        },
+        label: "< -4"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: -4.0,
+        max: -2.0,
+        attrs: {
+        fill: col6
+        },
+        label: "[-4:-2]"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: -2.0,
+        max: -0.0001,
+        attrs: {
+        fill: col5
+        },
+        label: "[-2:0]"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: 0.0001,
+        max: 2.0,
+        attrs: {
+        fill: col3
+        },
+        label: "[0:+2]"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: 2.0,
+        max: 4.0,
+        attrs: {
+        fill: col2
+        },
+        label: "[+2:+4]"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: 4.0,
+        max: 98,
+        attrs: {
+        fill: col1
+        },
+        label: "> +4 (%/yr)"
+        },{
+        size: siz1,
+        legendSpecificAttrs: {r: 7},
+        min: -0.001,
+        max: 0.001,
+        attrs: {
+        fill: col4
+        },
+        label: "No Trend"
+        },{
+        size: siz2,
+        legendSpecificAttrs: {r: 5},
+        min: -99.1,
+        max: -98.9,
+        attrs: {
+        fill: col0,
+        opacity: 0.15
+        },
+        label: "<7 years"	
 		}]
 		}
 		},
@@ -131,6 +174,8 @@ param2=$7 #'AOD' 'AE' 'SO4wet'
 			end=`expr length $line`
 			end=`expr $end - 4`
 			len=`expr $end - $beg`
+			site=${line:beg:len}
+
 			site=${line:beg:len}
 			echo $param2 ' - ' $period ' - ' $typ ' - ' $site
 
@@ -224,7 +269,13 @@ param2=$7 #'AOD' 'AE' 'SO4wet'
 		},{
 		size: siz1
 		},{
-		size: siz2
+		size: siz1
+		},{
+		size: siz1
+		},{
+		size: siz1
+		},{
+		size: siz1
 		},{
 		size: siz2
 		}]

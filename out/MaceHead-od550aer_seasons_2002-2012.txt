@@ -1,0 +1,6 @@
+stats	spring	summer	autumn	winter
+MK_tau 	  nan	  nan	  nan	  nan
+MK_pval	  nan	  nan	  nan	  nan
+TS(%/y)	  nan	  nan	  nan	  nan
+Reg0	  nan	  nan	  nan	  nan
+2003	2004

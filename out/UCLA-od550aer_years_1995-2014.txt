@@ -1,0 +1,5 @@
+MK_tau 	  nan
+MK_pval	  nan
+TS(%/y)	  nan
+Reg0	  nan
+2000	2007

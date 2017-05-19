@@ -103,39 +103,76 @@ for season in "${seasons[@]}"
 			slices: [{
 			size: siz1,
 			legendSpecificAttrs: {r: 7},
-			min: 0.01,
-			attrs: {
-			fill: col1
-			},
-			label: "Positive trend"
-			},{
-			size: siz1,
-			legendSpecificAttrs: {r: 7},
 			min: -98,
-			max: -0.01,
+			max: -4.0,
 			attrs: {
-			fill: col2
+			fill: col7
 			},
-			label: "Negative trend"
+			label: "< -4"
 			},{
 			size: siz1,
 			legendSpecificAttrs: {r: 7},
-			min: -0.01,
-			max: 0.01,
+			min: -4.0,
+			max: -2.0,
+			attrs: {
+			fill: col6
+			},
+			label: "[-4:-2]"
+			},{
+			size: siz1,
+			legendSpecificAttrs: {r: 7},
+			min: -2.0,
+			max: -0.0001,
+			attrs: {
+			fill: col5
+			},
+			label: "[-2:0]"
+			},{
+			size: siz1,
+			legendSpecificAttrs: {r: 7},
+			min: 0.0001,
+			max: 2.0,
 			attrs: {
 			fill: col3
 			},
-			label: "No trend"
+			label: "[0:+2]"
+			},{
+			size: siz1,
+			legendSpecificAttrs: {r: 7},
+			min: 2.0,
+			max: 4.0,
+			attrs: {
+			fill: col2
+			},
+			label: "[+2:+4]"
+			},{
+			size: siz1,
+			legendSpecificAttrs: {r: 7},
+			min: 4.0,
+			max: 98,
+			attrs: {
+			fill: col1
+			},
+			label: "> +4 (%/yr)"
+			},{
+			size: siz1,
+			legendSpecificAttrs: {r: 7},
+			min: -0.001,
+			max: 0.001,
+			attrs: {
+			fill: col4
+			},
+			label: "No Trend"
 			},{
 			size: siz2,
 			legendSpecificAttrs: {r: 5},
 			min: -99.1,
 			max: -98.9,
 			attrs: {
-			fill: col4,
+			fill: col0,
 			opacity: 0.15
 			},
-			label: "<7 years"
+			label: "<7 years"	
 			}]
 			}
 			},
@@ -244,7 +281,13 @@ for season in "${seasons[@]}"
 			},{
 			size: siz1
 			},{
-			size: siz2
+			size: siz1
+			},{
+			size: siz1
+			},{
+			size: siz1
+			},{
+			size: siz1
 			},{
 			size: siz2
 			}]
