@@ -17,16 +17,24 @@ baspath='/lustre/storeB/project/aerocom/aerocom-users-database/CCI-Aerosol/CCI_A
 
 param = 'od550aer'
 model = 'CCI'
+model = 'CCI_ADV'
 years = np.arange(1995,2012+1)
 
 #initialization
 YYYY, MM, DD, VAR =[], [], [], []
 for iy, year in enumerate(years):
 
+    if model=='CCI_SU':
+        vers='SU_v4.3'
+    elif model=='CCI_ORAC':
+        vers='ORAC_v4.01'
+    elif model=='CCI_ADV':
+        vers='ADV_v2.30'
+
     if year<2003:
-        sat='ATSR2_SU_v4.3'
+        sat='ATSR2_'+vers
     else:
-        sat='AATSR_SU_v4.3'
+        sat='AATSR_'+vers
 
     path=baspath+sat+'/renamed/'
     #read the netcdf file: sconcso4(time, lat, lon), time, lat lon

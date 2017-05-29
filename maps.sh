@@ -16,8 +16,8 @@ for network in ${networks[@]}; do
 					params2=('AOD550') #name in the interface
 					time='daily'
 					periods=('2002-2012' '1995-2014')
-					models=('ECMWF' 'EMEP' 'EMEP_new' 'CCI')
-					models=('ECMWF_EAC3')
+					models=('ECMWF' 'ECMWF_EAC3' 'EMEP' 'EMEP_new' 'CCI_SU' 'CCI_ORAC' 'CCI_ADV')
+					models=('CCI_SU' 'CCI_ORAC' 'CCI_ADV')
 					;;
 	GAW_TAD)		net='GAW_TAD'
 					params=('so4_precip' 'so2' 'so4_aero')
@@ -63,10 +63,9 @@ for network in ${networks[@]}; do
 		i=0
 		for param in ${params[@]}; do
 			echo $param
-			
+		        '''	
 			#seasonly maps
 			echo 'Season Maps'
-			'''
                         if [ $network = "Earlinet" ]; then
 				./maprep_trends_season.sh $network'/data/' $net $param $time $path $period ${params2[$i]}
 			else
@@ -80,7 +79,6 @@ for network in ${networks[@]}; do
 				./maprep_trends_year.sh $network $net $param $time $path $period ${params2[$i]}
 			fi
                         '''
-
 			#models
 			for model in ${models[@]}; do
 				#seasonly maps

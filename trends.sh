@@ -53,8 +53,8 @@ for network in ${networks[@]}; do
 		echo $beg
 		
 		if [ "$param" = "od550aer" ]; then
-			models=('ECMWF_EAC3' 'ECMWF' 'EMEP' 'EMEP_new' 'CCI')
-			models=('ECMWF_EAC3')
+			models=('ECMWF_EAC3' 'ECMWF' 'EMEP' 'EMEP_new' 'CCI_SU' 'CCI_ORAC' 'CCI_ADV')
+			models=('CCI_SU' 'CCI_ORAC' 'CCI_ADV')
 		fi
 
 		for period in ${periods[@]}; do
@@ -79,7 +79,7 @@ for network in ${networks[@]}; do
 				end=`expr $end - 4`
 				len=`expr $end - $beg`
 				site=${line:beg:len}
-				
+			        '''	
 				#seasonly trends
 				echo 'season - ' $period ' - ' $line
 				./trend-season.py $path$network $site $param $yrmin $yrmax $nmkmin $time $release
@@ -96,7 +96,7 @@ for network in ${networks[@]}; do
 					echo 'year - ' $period ' - ' $line '-' $model
 					./trend-mod-year.py $path$network $model $site $param $yrmin $yrmax $nmkmin $time $release
 				done #models loop
-                                '''
+                                
 			done #line loop
 			
 			#scp figures to AEROCOM
